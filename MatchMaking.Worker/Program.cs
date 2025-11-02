@@ -6,19 +6,24 @@ using System.Threading;
 
 var consumerConfig = new ConsumerConfig
 {
-    BootstrapServers = "localhost:9092",
+    BootstrapServers = "matchmaking-kafka:9092", 
     GroupId = "matchmaking-worker-group",
     AutoOffsetReset = AutoOffsetReset.Earliest
 };
 
-var redis = ConnectionMultiplexer.Connect("localhost:6379");
+
+var redisConfig = new StackExchange.Redis.ConfigurationOptions
+{
+    EndPoints = { "matchmaking-redis:6379" },
+    AbortOnConnectFail = false
+};
+var redis = ConnectionMultiplexer.Connect(redisConfig);
 var db = redis.GetDatabase();
 
 using var consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
 consumer.Subscribe("match-requests");
 
 Console.WriteLine("Worker started, waiting for messages...");
-
 
 while (true)
 {
