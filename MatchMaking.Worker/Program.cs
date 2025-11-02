@@ -19,6 +19,7 @@ consumer.Subscribe("match-requests");
 
 Console.WriteLine("Worker started, waiting for messages...");
 
+
 while (true)
 {
     try
