@@ -1,0 +1,46 @@
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    container_name: matchmaking-zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: matchmaking-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  redis:
+    image: redis:latest
+    container_name: matchmaking-redis
+    ports:
+      - "6379:6379"
+
+  matchmaking-service:
+    build:
+      context: ./MatchMaking.Service
+    container_name: matchmaking-service
+    ports:
+      - "5064:5064"
+    environment:
+      - ASPNETCORE_URLS=http://+:5064
+    depends_on:
+      - kafka
+      - redis
+
+  matchmaking-worker:
+    build:
+      context: ./MatchMaking.Worker
+    container_name: matchmaking-worker
+    depends_on:
+      - kafka
+      - redis

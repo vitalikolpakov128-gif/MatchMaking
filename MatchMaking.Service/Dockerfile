@@ -1,0 +1,13 @@
+# مرحله 1: Build پروژه
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /app
+COPY . .
+RUN dotnet restore
+RUN dotnet publish -c Release -o out
+
+# مرحله 2: اجرای نهایی
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
+COPY --from=build /app/out .
+EXPOSE 5064
+ENTRYPOINT ["dotnet", "MatchMaking.Service.dll"]
