@@ -12,13 +12,13 @@ using System.Text.Json;
 [AllowAnonymous]
 public class MatchController : ControllerBase
 {
-     private readonly IConnectionMultiplexer _redis; // ✅ فیلد Redis
+     private readonly IConnectionMultiplexer _redis; 
 
     public MatchController(IConnectionMultiplexer redis)
     {
-        _redis = redis; // ✅ مقداردهی از طریق DI
+        _redis = redis;
     }
-    // حافظه داخلی برای ذخیره موقت match ها
+    
     private static readonly ConcurrentDictionary<string, MatchResult> _matches = new();
 
     [HttpPost("search")]
@@ -34,10 +34,9 @@ public class MatchController : ControllerBase
 
         using var producer = new ProducerBuilder<Null, string>(config).Build();
 
-        // پیام userId به Kafka ارسال می‌شود
+        
         await producer.ProduceAsync("match-requests", new Message<Null, string> { Value = userId });
-        producer.Flush(TimeSpan.FromSeconds(5)); // اطمینان از ارسال پیام
-
+        producer.Flush(TimeSpan.FromSeconds(5)); 
         return NoContent(); // 204
     }
 
@@ -47,7 +46,7 @@ public IActionResult GetMatchInfo([FromQuery] string userId)
     if (string.IsNullOrEmpty(userId))
         return BadRequest();
 
-    // اتصال به Redis
+   
     var db = _redis.GetDatabase();
     var matchJson = db.StringGet(userId);
 
@@ -60,5 +59,4 @@ public IActionResult GetMatchInfo([FromQuery] string userId)
 
 }
 
-// مدل MatchResult
 public record MatchResult(string MatchId, string[] UserIds);
